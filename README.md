@@ -33,6 +33,20 @@ full 2,000-sentence test set. Every model now lands at **91–92% test accuracy
 
 ![Test accuracy: notebooks vs this repo](docs/images/before-after.png)
 
+### First proof it works: every model can overfit
+
+The classic first check: give each model ONE batch of 64 real training
+sentences and let it memorise them. A broken pipeline (shifted labels, wrong
+masks, dead gradients) cannot. All 12 models drive the loss from ln 6 = 1.79
+(random guessing) to ~0 and reach **100% on the batch within 15–42 steps**
+([table](docs/overfit.md), `python scripts/overfit_all.py`). The spike of the
+one-hot scratch RNN around step 65 is the well-known instability of vanilla
+ReLU RNNs; it recovers on its own.
+
+![Overfit test: all 12 models](docs/images/overfit-all.png)
+
+### Then real training: validation curves
+
 Validation accuracy per epoch. Solid lines are `nn.RNN/LSTM/GRU` and dashed
 lines are our from-scratch cells; they behave the same, as the parity tests
 predict. GloVe (frozen, raw text) starts slower than the learned one-hot table
