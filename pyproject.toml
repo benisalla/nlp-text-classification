@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nlp-text-classification"
+version = "0.1.0"
+description = "Emotion classification with RNN, LSTM and GRU in PyTorch: one-hot vs GloVe, nn.* vs from-scratch cells."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+  "matplotlib>=3.8",
+  "nltk>=3.9",
+  "numpy>=1.26",
+  "pandas>=2.0",
+  "pyarrow>=14",
+  "torch>=2.2",
+]
+
+[project.scripts]
+textcls-train = "textcls.train:main"
+textcls-predict = "textcls.predict:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/textcls"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+lint.ignore = ["C408"]
