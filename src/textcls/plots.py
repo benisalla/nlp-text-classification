@@ -108,3 +108,58 @@ def plot_comparison(rows: list[dict], path: str | Path, metric: str = "f1") -> N
     fig.tight_layout()
     fig.savefig(path, dpi=110)
     plt.close(fig)
+
+
+CELL_COLORS = {"rnn": "#2a78d6", "lstm": "#eb6834", "gru": "#1baf7a"}
+
+
+def plot_val_curves(rows: list[dict], path: str | Path) -> None:
+    """Validation accuracy per epoch for every model: one panel per embedding,
+    one colour per cell, solid = nn.* and dashed = from scratch."""
+    embs = ["onehot", "glove"]
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.2), sharey=True)
+    for ax, emb in zip(axes, embs):
+        for r in rows:
+            if r["embedding"] != emb:
+                continue
+            acc = [100 * a for a in r["history"]["val_acc"]]
+            ax.plot(
+                range(1, len(acc) + 1),
+                acc,
+                color=CELL_COLORS[r["cell"]],
+                lw=2,
+                ls="-" if r["impl"] == "torch" else "--",
+                marker="o",
+                ms=3,
+                label=f"{r['cell'].upper()} {'nn.*' if r['impl'] == 'torch' else 'scratch'}",
+            )
+        _style(ax, f"{'One-hot' if emb == 'onehot' else 'GloVe'} embeddings", "epoch", "validation accuracy (%)")
+        ax.legend(frameon=False, fontsize=8, ncol=2, loc="lower right")
+    fig.suptitle("Validation accuracy during training (all 12 models)", x=0.01, ha="left", color=INK)
+    fig.tight_layout()
+    fig.savefig(path, dpi=110)
+    plt.close(fig)
+
+
+def plot_before_after(rows: list[dict], notebook: dict, path: str | Path) -> None:
+    """Test accuracy per model: the original notebooks vs this package."""
+    rows = sorted(rows, key=lambda r: (r["embedding"], ["rnn", "lstm", "gru"].index(r["cell"]), r["impl"]))
+    names = [r["name"] for r in rows]
+    fig, ax = plt.subplots(figsize=(8.5, 0.45 * len(rows) + 1.3))
+    h = 0.38
+    for i, r in enumerate(rows):
+        old = notebook[r["name"]][0]
+        new = 100 * r["accuracy"]
+        ax.barh(i + h / 2, old, height=h, color="#c3c2b7", label="notebook" if i == 0 else None)
+        ax.barh(i - h / 2, new, height=h, color=TRAIN, label="this repo" if i == 0 else None)
+        ax.text(old + 0.5, i + h / 2, f"{old:.1f}", va="center", fontsize=8, color=MUTED)
+        ax.text(new + 0.5, i - h / 2, f"{new:.1f}", va="center", fontsize=8, color=INK)
+    ax.set_yticks(range(len(rows)), names)
+    ax.invert_yaxis()
+    ax.set_xlim(0, 125)
+    _style(ax, "Test accuracy (%): original notebooks vs fixed package", "", "")
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
+    ax.legend(frameon=False, loc="lower right")
+    fig.tight_layout()
+    fig.savefig(path, dpi=110)
+    plt.close(fig)

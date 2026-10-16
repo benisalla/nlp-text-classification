@@ -17,7 +17,7 @@ from pathlib import Path
 import torch
 
 from textcls.config import CELLS, CLASSES, EMBEDDINGS, IMPLS, Config, DataConfig, ModelConfig, TrainConfig
-from textcls.plots import plot_comparison, plot_confusion, plot_history
+from textcls.plots import plot_before_after, plot_comparison, plot_confusion, plot_history, plot_val_curves
 from textcls.train import run
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,6 +50,12 @@ def config_for(embedding: str, cell: str, impl: str, epochs: int) -> Config:
 
 
 def write_results(rows: list[dict]) -> None:
+    log = ROOT / "logs" / "sanity.log"
+    sanity = (
+        "\n".join(ln for ln in log.read_text().splitlines() if ln.startswith(("[", "ALL", "SOME")))
+        if log.exists()
+        else ""
+    )
     rows = sorted(rows, key=lambda r: (r["embedding"], ["rnn", "lstm", "gru"].index(r["cell"]), r["impl"]))
     lines = [
         "# Results",
@@ -77,13 +83,54 @@ def write_results(rows: list[dict]) -> None:
         "from-scratch models were not recurrent (one cell per position). See",
         "[legacy/README.md](../legacy/README.md).",
         "",
+        "![before and after](images/before-after.png)",
+        "",
+        "## What the numbers say",
+        "",
+        "* **All 12 models land within ~1.5 points (91-92% accuracy, 0.87-0.88 macro F1).**",
+        "  On short, keyword-heavy sentences, a correctly wired RNN is already enough;",
+        "  the cell type and the embedding matter much less than getting padding,",
+        "  recurrence and evaluation right.",
+        "* **`nn.*` and from-scratch versions are equivalent**, as the parity tests",
+        "  predict (same equations, same parameter count). The small gaps come from",
+        "  different random initialisations, not from the implementation.",
+        "* **GloVe starts slower but needs no simplification**: frozen vectors plus raw",
+        "  text reach the same accuracy as a learned table on lemmatised text, with",
+        "  310k fewer trainable parameters (the frozen table is not trained).",
+        "* **The hard classes are the rare and the close ones**: `love` is confused",
+        "  with `joy`, `surprise` with `fear` (see the confusion matrices).",
+        "",
+        "![validation curves](images/val-curves.png)",
+        "",
         "![comparison](images/comparison.png)",
+        "",
+        "## Sanity checks",
+        "",
+        "`python scripts/sanity_check.py --embedding onehot --cell lstm --impl scratch`",
+        "on the real data (see [testing.md](testing.md) for why each check matters):",
+        "",
+        "```",
+        sanity,
+        "```",
+        "",
+        "![sanity checks](images/sanity-onehot-lstm-scratch.png)",
         "",
         "## Per model",
         "",
+        "Loss, accuracy and the log10 update/weight ratio per epoch (the ratio starts",
+        "near -1.9 and decays to about -2.7, close to the usual -3 rule of thumb, following the",
+        "learning-rate schedule), then the test confusion matrix of the best checkpoint.",
+        "",
     ]
     for r in rows:
-        lines += [f"### `{r['name']}`", "", f"![{r['name']} history](images/{r['name']}-history.png)", ""]
+        lines += [
+            f"### `{r['name']}`",
+            "",
+            f"![{r['name']} history](images/{r['name']}-history.png)",
+            "",
+            f'<img src="images/{r["name"]}-confusion.png" width="420" alt="{r["name"]} confusion matrix">',
+            "",
+        ]
     (ROOT / "docs" / "results.md").write_text("\n".join(lines) + "\n")
 
 
@@ -112,6 +159,8 @@ def main() -> None:
             plot_confusion(m["confusion_matrix"], CLASSES, IMG / f"{name}-confusion.png", f"{name}: test set")
 
     plot_comparison(rows, IMG / "comparison.png")
+    plot_val_curves(rows, IMG / "val-curves.png")
+    plot_before_after(rows, NOTEBOOK, IMG / "before-after.png")
     write_results(rows)
     print(f"wrote docs/results.md with {len(rows)} models")
 

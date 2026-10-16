@@ -25,8 +25,67 @@ flowchart LR
 
 ## Results
 
-Training of the 12 models is running; the table and figures land in
-[docs/results.md](docs/results.md) when it finishes.
+All 12 models trained for up to 8 epochs on a CPU with one shared recipe,
+early-stopped on validation accuracy, and the best checkpoint scored on the
+full 2,000-sentence test set. Every model now lands at **91–92% test accuracy
+(macro F1 0.87–0.88)**. The original notebooks ranged from 50% to 81.5%:
+
+![Test accuracy: notebooks vs this repo](docs/images/before-after.png)
+
+Validation accuracy per epoch. Solid lines are `nn.RNN/LSTM/GRU` and dashed
+lines are our from-scratch cells; they behave the same, as the parity tests
+predict. GloVe (frozen, raw text) starts slower than the learned one-hot table
+(on lemmatised text) and catches up by epoch 5:
+
+![Validation curves of all 12 models](docs/images/val-curves.png)
+
+One model in detail (`glove-lstm-scratch`, the best one, 92.3%): the loss
+falls on both splits, early stopping keeps the best validation epoch, and the
+update/weight ratio stays near the healthy 1e-3 zone:
+
+![Training curves of glove-lstm-scratch](docs/images/glove-lstm-scratch-history.png)
+
+<img src="docs/images/glove-lstm-scratch-confusion.png" width="440" alt="Confusion matrix of glove-lstm-scratch">
+
+The remaining errors are the classes you would expect: `love` taken for `joy`,
+`surprise` taken for `fear`.
+
+| model | test acc | macro F1 | | model | test acc | macro F1 |
+|---|---:|---:|---|---|---:|---:|
+| `onehot-rnn-torch` | 91.85% | 0.879 | | `glove-rnn-torch` | 90.95% | 0.866 |
+| `onehot-rnn-scratch` | 91.70% | 0.866 | | `glove-rnn-scratch` | 92.15% | 0.881 |
+| `onehot-lstm-torch` | 91.95% | 0.871 | | `glove-lstm-torch` | 91.65% | 0.868 |
+| `onehot-lstm-scratch` | 92.00% | 0.878 | | `glove-lstm-scratch` | **92.30%** | **0.883** |
+| `onehot-gru-torch` | 91.75% | 0.877 | | `glove-gru-torch` | 91.80% | 0.878 |
+| `onehot-gru-scratch` | 92.15% | **0.884** | | `glove-gru-scratch` | 92.10% | 0.878 |
+
+Curves and confusion matrices for every model, and what the numbers mean:
+[docs/results.md](docs/results.md).
+
+### Sanity checks pass on the real data
+
+Before trusting long runs: the loss at init is ln 6 (the model starts unsure),
+the network memorises one batch of 64 real sentences, and it clearly beats a
+"blind" copy whose input is erased:
+
+![Sanity checks](docs/images/sanity-onehot-lstm-scratch.png)
+
+### Try it
+
+```
+$ textcls-predict --checkpoint checkpoints/glove-lstm-scratch/best.pt "i didnt feel humiliated" ...
+sadness   0.98  (anger 0.01, fear 0.00)  <- i didnt feel humiliated
+love      0.99  (fear 0.00, anger 0.00)  <- i feel so loved and cared for by my family
+surprise  0.97  (fear 0.01, anger 0.00)  <- i was shocked when i saw the final score
+fear      0.92  (joy 0.03, anger 0.02)  <- i am terrified of what tomorrow will bring
+anger     0.99  (fear 0.01, joy 0.00)  <- i am so furious that they lied to me again
+surprise  0.88  (joy 0.10, fear 0.01)  <- i feel amazing today, everything went right
+```
+
+The last one is a real mistake (it should be joy). A likely reason: in the
+training set "amazing" is labelled *surprise* 39 times out of 121 (10x the
+3.6% base rate of surprise), and its close GloVe neighbour "amazed" is
+*surprise* in 66 of 70 sentences.
 
 ## Quick start
 
@@ -114,7 +173,7 @@ was wrong. Highlights (full list with tests in [legacy/README.md](legacy/README.
 ## Status and next steps
 
 - [x] Package, CLIs, unit tests, neural-network sanity checks
-- [x] 12 models trained on CPU with one shared recipe
+- [x] 12 models trained on CPU with one shared recipe (results above)
 - [ ] Class-weighted loss or oversampling for `surprise` / `love` (lowest F1)
 - [ ] Attention pooling over all hidden states instead of the last state
 - [ ] A small Transformer encoder as the 13th model
