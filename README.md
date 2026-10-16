@@ -5,6 +5,7 @@ RNN, LSTM and GRU in PyTorch, each built twice (with `nn.LSTM` & co. and from
 scratch), fed either learned one-hot embeddings or frozen GloVe vectors:
 12 models, one codebase, one shared training recipe.
 
+[![tests](https://github.com/benisalla/nlp-text-classification/actions/workflows/tests.yml/badge.svg)](https://github.com/benisalla/nlp-text-classification/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c.svg)](https://pytorch.org)
@@ -118,6 +119,7 @@ On a machine that is busy with other jobs, add `--threads 1` (or
 
 | guide | what is inside |
 |---|---|
+| [docs/overfit.md](docs/overfit.md) | overfit test: all 12 models memorise one real batch |
 | [docs/results.md](docs/results.md) | all 12 models: test accuracy, macro F1, curves, confusion matrices, sanity checks |
 | [docs/training.md](docs/training.md) | install, data, every training flag, prediction from the CLI and from Python |
 | [docs/architecture.md](docs/architecture.md) | preprocessing, embeddings, the cell equations, shapes, parameter counts |
@@ -138,6 +140,7 @@ src/textcls/          the package (read in this order)
   plots.py            training curves, confusion matrix, comparison chart
 scripts/
   run_all.py          train the 12 models, write docs/results.md and figures
+  overfit_all.py      overfit one real batch with all 12 models (docs/overfit.md)
   sanity_check.py     init loss, overfit a batch, real-vs-blind, gradient flow (real data)
 tests/                pytest suite (CPU only, offline)
 docs/                 guides, results and images
@@ -172,7 +175,7 @@ was wrong. Highlights (full list with tests in [legacy/README.md](legacy/README.
 
 ## Status and next steps
 
-- [x] Package, CLIs, unit tests, neural-network sanity checks
+- [x] Package, CLIs, unit tests (CI on every push), neural-network sanity checks, overfit test for all 12 models
 - [x] 12 models trained on CPU with one shared recipe (results above)
 - [ ] Class-weighted loss or oversampling for `surprise` / `love` (lowest F1)
 - [ ] Attention pooling over all hidden states instead of the last state

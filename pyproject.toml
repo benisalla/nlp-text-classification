@@ -9,6 +9,13 @@ description = "Emotion classification with RNN, LSTM and GRU in PyTorch: one-hot
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
+authors = [{ name = "Ismail Ben Alla" }]
+keywords = ["pytorch", "nlp", "text-classification", "emotion-classification", "rnn", "lstm", "gru", "glove", "from-scratch"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
   "matplotlib>=3.8",
   "nltk>=3.9",
@@ -17,6 +24,9 @@ dependencies = [
   "pyarrow>=14",
   "torch>=2.2",
 ]
+
+[project.urls]
+Repository = "https://github.com/benisalla/nlp-text-classification"
 
 [project.scripts]
 textcls-train = "textcls.train:main"
