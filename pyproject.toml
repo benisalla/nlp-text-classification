@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nlp-text-classification"
+name = "text-classification"
 version = "0.1.0"
 description = "Emotion classification with RNN, LSTM and GRU in PyTorch: one-hot vs GloVe, nn.* vs from-scratch cells."
 readme = "README.md"
@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/benisalla/nlp-text-classification"
+Repository = "https://github.com/benisalla/text-classification"
 
 [project.scripts]
 textcls-train = "textcls.train:main"

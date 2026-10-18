@@ -1,11 +1,11 @@
-# nlp-text-classification
+# text-classification
 
 **Read a short English sentence, tell which of six emotions it carries.**
 RNN, LSTM and GRU in PyTorch, each built twice (with `nn.LSTM` & co. and from
 scratch), fed either learned one-hot embeddings or frozen GloVe vectors:
 12 models, one codebase, one shared training recipe.
 
-[![tests](https://github.com/benisalla/nlp-text-classification/actions/workflows/tests.yml/badge.svg)](https://github.com/benisalla/nlp-text-classification/actions/workflows/tests.yml)
+[![tests](https://github.com/benisalla/text-classification/actions/workflows/tests.yml/badge.svg)](https://github.com/benisalla/text-classification/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c.svg)](https://pytorch.org)
